@@ -13,7 +13,7 @@ import pandas as pd
 def parseTime(date, time):
     form = '%d/%m/%Y-%H:%M:%S'
     t = datetime.strptime(date + '-' + time, form)
-    t = datetime(t.year, t.month, t.day, t.hour, t.minute, tzinfo=pytz.timezone('America/Chicago'))
+    t = datetime(t.year, t.month, t.day, t.hour, t.minute, tzinfo=pytz.timezone('America/New_York'))
     utc = t.astimezone(timezone.utc)
     return t, utc
 
@@ -30,9 +30,9 @@ def convert():
         time_str = values[1]
         op = float(values[2])
         hi = float(values[3])
-        lo = float(values[3])
-        cl = float(values[4])
-        vo = float(values[5])
+        lo = float(values[4])
+        cl = float(values[5])
+        vo = float(values[6])
         t, utc = parseTime(date_str, time_str)
         tohlcv.append([utc, op, hi, lo, cl, vo])
         l = f.readline()
