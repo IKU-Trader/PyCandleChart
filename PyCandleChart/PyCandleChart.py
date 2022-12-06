@@ -243,7 +243,7 @@ class PyCandleChart:
             t1 = awarePyTime2Float(timerange[1])
             tick = self.ticks(timerange[0], timerange[1], 10)   
         else:
-            tick = self.ticks(time[0], time[-1], 5)
+            tick = self.ticks(time[0], time[-1], 10)
         
         self.ax.set_xlim(t0, t1)
              
