@@ -56,10 +56,11 @@ def dayOfLastSunday(year, month):
     w_l = [i % 7 for i in range(w, w + 7)]
     return l[w_l.index(dow)]  
 
-def utcTime(year, month, day, hour, minute):
-    local = datetime(year, month, day, hour, minute)
-    return pytz.timezone('UTC').localize(local)   
+def utcTime(year, month, day, hour, minute, second):
+    return pyTime(year, month, day, hour, minute, second, pytz.timezone('UTC'))   
 
+#https://pytz.sourceforge.net/
+#Unfortunately using the tzinfo argument of the standard datetime constructors ‘’does not work’’ with pytz for many timezones.
 def pyTime(year, month, day, hour, minute, second, tzinfo):
     t = datetime(year, month, day, hour, minute, second)
     time = tzinfo.localize(t)
