@@ -81,41 +81,39 @@ def backward(ohlc):
             out[i] = op[i - 1] - hi[i]
     return out
     
-    
-    
 
-
-def test():
-
-    df = pd.read_csv('../data/DJI/DJI_Feature_2019_08.csv')
-    tohlcv = candleData2arrays(df.values)
+def plot(year, month, day, tohlcv):
     time = str2pytimeArray(tohlcv[0], pytz.utc)
     jst = changeTimezone(time, TIMEZONE_TOKYO) 
-    print(jst[0],  '->', jst[-1])
     
-    t0 = datetime(2019, 8, 5, 23).astimezone(TIMEZONE_TOKYO)
-    t1 = datetime(2019, 8, 6, 5).astimezone(TIMEZONE_TOKYO)
-    length, begin, end = sliceTime(jst, t0, t1)
-    if length == 0:
+    try:
+        t0 = datetime(year, month, day, 0).astimezone(TIMEZONE_TOKYO)
+        t1 = datetime(year, month, day, 5).astimezone(TIMEZONE_TOKYO)
+    except:
         return
-    
-    jst = jst[begin:end+1]
-    op = tohlcv[1][begin:end+1]
-    hi = tohlcv[2][begin:end+1]
-    lo = tohlcv[3][begin:end+1]
-    cl = tohlcv[4][begin:end+1]
-    vo = tohlcv[5][begin:end+1]
-    ohlcv = [op, hi, lo, cl, vo]
     
     sma5 = sma(tohlcv[4], 5)
     sma20 = sma(tohlcv[4], 20)
     mid = midpoint(tohlcv[1:])
     back = backward(tohlcv[1:])
     
+    length, begin, end = sliceTime(jst, t0, t1)
+    if length < 50:
+        return
+    
+    op = tohlcv[1][begin:end+1]
+    hi = tohlcv[2][begin:end+1]
+    lo = tohlcv[3][begin:end+1]
+    cl = tohlcv[4][begin:end+1]
+    vo = tohlcv[5][begin:end+1]
+    ohlcv = [op, hi, lo, cl, vo]
+
+    jst = jst[begin:end+1]
     sma5 = sma5[begin: end + 1]
     sma20 = sma20[begin: end + 1]
     mid = mid[begin: end + 1]
     back = back[begin: end + 1]
+    back /= cl[0] * 100.0
     dif = (sma5 - sma20) / cl[0] * 100.0
     
     fig, axes = gridFig([8, 4, 2], (20, 8))
@@ -135,6 +133,17 @@ def test():
     
     chart3 = PyCandleChart(fig, axes[1], '')
     chart3.drawLine(jst, back, color='orange')
+
+
+def test():
+    year = 2019
+    df = pd.read_csv( f'../data/DJI/DJI_Feature_{year}.csv')
+    tohlcv = candleData2arrays(df.values)
+    for month in range(1, 7):
+        for day in range(1, 32):
+            plot(year, month, day, tohlcv)
+
+    
 
 if __name__ == '__main__':
     test()
