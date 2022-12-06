@@ -10,12 +10,19 @@ import pytz
 from datetime import datetime, timezone
 import pandas as pd
 
+
+def pyTime(year, month, day, hour, minute, second, tzinfo):
+    t = datetime(year, month, day, hour, minute, second)
+    time = tzinfo.localize(t)
+    return time
+
 def parseTime(date, time):
     form = '%d/%m/%Y-%H:%M:%S'
     t = datetime.strptime(date + '-' + time, form)
-    t = datetime(t.year, t.month, t.day, t.hour, t.minute, tzinfo=pytz.timezone('America/New_York'))
-    utc = t.astimezone(timezone.utc)
-    return t, utc
+    time = pyTime(t.year, t.month, t.day, t.hour, t.minute, 0, pytz.timezone('America/Chicago'))
+    #time = pytz.timezone('America/Chicago').localize(t)
+    utc = time.astimezone(timezone.utc)
+    return time, utc
 
 def convert():
     path = './data/ym-1m.csv'

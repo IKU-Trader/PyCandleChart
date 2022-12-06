@@ -19,8 +19,10 @@ def test():
     print(jst[0],  '->', jst[-1])
     
     t0 = datetime(2019, 8, 6, 1).astimezone(TIMEZONE_TOKYO)
-    t1 = datetime(2019, 8, 6, 6).astimezone(TIMEZONE_TOKYO)
+    t1 = datetime(2019, 8, 6, 5).astimezone(TIMEZONE_TOKYO)
     length, begin, end = sliceTime(jst, t0, t1)
+    if length == 0:
+        return
     
     jst = jst[begin:end+1]
     op = tohlcv[1][begin:end+1]

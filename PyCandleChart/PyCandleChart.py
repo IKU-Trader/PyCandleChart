@@ -15,12 +15,17 @@ import matplotlib.colors as mcolors
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 import matplotlib.dates as mdates
-from datetime import datetime 
+from datetime import datetime, timedelta
 import matplotlib.gridspec as gridspec
 
 DATE_FORMAT_TIME = '%H:%M'
 DATE_FORMAT_DAY = '%m-%d'
 DATE_FORMAT_DAY_TIME = '%m-%d %H:%M'
+
+LIGHT_GREEN = '#22bbbb'
+LIGHT_RED = '#ee9999'
+RED = '#ff4444'
+GREEN = '#44ffcc'
 
 
 def candleData2arrays(ohlc):
@@ -84,15 +89,14 @@ class CandleGraphic:
         if len(ohlc) < 4:
             raise Exception('Bad ohlc data')
         
-        BLUE = '#4444ff'
-        ORANGE = '#ffaa99'
+
         self.box_width = box_width
         self.line_width = 1.0
         self.alpha = 0.7
-        self.color_positive = BLUE
-        self.box_line_color_positive = 'blue'
-        self.color_negative = ORANGE
-        self.box_line_color_negative = 'orange'
+        self.box_body_color_positive = LIGHT_GREEN
+        self.box_line_color_positive = GREEN
+        self.box_body_color_negative = LIGHT_RED
+        self.box_line_color_negative = RED
         
         t = awarePyTime2Float(py_time)
         op = ohlc[0]
@@ -100,14 +104,14 @@ class CandleGraphic:
         lo = ohlc[2]
         cl = ohlc[3]
         if cl >= op:
-            color = self.color_positive
-            line_color = self.color_positive
+            body_color = self.box_body_color_positive
+            line_color = self.box_line_color_positive
             box_low = op
             box_high = cl
             height = cl - op
         else:
-            color = self.color_negative
-            line_color = self.color_negative
+            body_color = self.box_body_color_negative
+            line_color = self.box_line_color_negative
             box_low = cl
             box_high = op
             height = op - cl
@@ -126,8 +130,8 @@ class CandleGraphic:
         rect = Rectangle(xy=(t - self.box_width / 2, box_low),
                          width=self.box_width,
                          height=height,
-                         facecolor=color,
-                         edgecolor=color)
+                         facecolor=body_color,
+                         edgecolor=body_color)
         rect.set_alpha(self.alpha)
 
         self.line_upper = line_upper
@@ -237,10 +241,28 @@ class PyCandleChart:
         if timerange is not None:
             t0 = awarePyTime2Float(timerange[0])
             t1 = awarePyTime2Float(timerange[1])
+            tick = self.ticks(timerange[0], timerange[1], 10)   
+        else:
+            tick = self.ticks(time[0], time[-1], 5)
         
         self.ax.set_xlim(t0, t1)
+             
+        self.ax.set_xticks(tick)
+        
+        
         #self.ax.autoscale_view()
         return
+    
+    def ticks(self, t0, t1, dt_minutes):
+        tm = int(t0.minute / dt_minutes) * dt_minutes
+        time = datetime(t0.year, t0.month, t0.day, t0.hour, tm, tzinfo=t0.tzinfo)
+        ticks = []
+        while time < t1:
+            ticks.append(awarePyTime2Float(time))
+            time += timedelta(minutes=dt_minutes)
+        return ticks
+        
+    
     
     def drawLine(self, time, value, color='red', linestyle='solid', linewidth=1.0, ylim=None, label=''):
         tfloat = awarePyTimeList2Float(time)
@@ -327,6 +349,8 @@ class PyBandPlot:
         self.ax.grid()
         self.ax.xaxis_date()
         self.ax.xaxis.set_major_formatter(mdates.DateFormatter(date_format))
+        self.ax.xaxis.set_major_locator(mdates.MinuteLocator(interval=6))
+        self.ax.xaxis.set_minor_locator(mdates.MinuteLocator(interval=6))
         pass
         
     def boxWidth(self, time1, time2):

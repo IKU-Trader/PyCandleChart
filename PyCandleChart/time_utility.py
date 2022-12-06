@@ -46,3 +46,31 @@ def str2pytimeArray(time_str_array: [str], tzinfo, form='%Y-%m-%d %H:%M:%S'):
         t = datetime.datetime(t.year, t.month, t.day, t.hour, t.minute, t.second, tzinfo=tzinfo)
         out.append(t)
     return out
+
+def dayOfLastSunday(year, month):
+    '''dow: Monday(0) - Sunday(6)'''
+    dow = 6
+    n = calendar.monthrange(year, month)[1]
+    l = range(n - 6, n + 1)
+    w = calendar.weekday(year, month, l[0])
+    w_l = [i % 7 for i in range(w, w + 7)]
+    return l[w_l.index(dow)]  
+
+def utcTime(year, month, day, hour, minute):
+    local = datetime(year, month, day, hour, minute)
+    return pytz.timezone('UTC').localize(local)   
+
+def pyTime(year, month, day, hour, minute, second, tzinfo):
+    t = datetime(year, month, day, hour, minute, second)
+    time = tzinfo.localize(t)
+    return time
+
+def isSummerTime(date_time):
+    day0 = dayOfLastSunday(date_time.year, 3)
+    tsummer0 = utcTime(date_time.year, 3, day0, 0, 0)
+    day1 = dayOfLastSunday(date_time.year, 10)
+    tsummer1 = utcTime(date_time.year, 10, day1, 0, 0)
+    if date_time > tsummer0 and date_time < tsummer1:
+        return True
+    else:
+        return False
