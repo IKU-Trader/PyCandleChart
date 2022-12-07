@@ -43,7 +43,7 @@ def str2pytimeArray(time_str_array: [str], tzinfo, form='%Y-%m-%d %H:%M:%S'):
         if i > 0:
             s = s[:i]
         t = datetime.datetime.strptime(s, form)
-        t = datetime.datetime(t.year, t.month, t.day, t.hour, t.minute, t.second, tzinfo=tzinfo)
+        t = pyTime(t.year, t.month, t.day, t.hour, t.minute, t.second, tzinfo)
         out.append(t)
     return out
 

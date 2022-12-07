@@ -82,66 +82,68 @@ def backward(ohlc):
     return out
     
 
-def plot(year, month, day, tohlcv):
+def plot(year, month, days, tohlcv):
     time = str2pytimeArray(tohlcv[0], pytz.utc)
-    jst = changeTimezone(time, TIMEZONE_TOKYO) 
+    jst_all = changeTimezone(time, TIMEZONE_TOKYO)     
+    sma5_all = sma(tohlcv[4], 5)
+    sma20_all = sma(tohlcv[4], 20)
+    mid_all = midpoint(tohlcv[1:])
+    back_all = backward(tohlcv[1:])
     
-    try:
-        t0 = datetime(year, month, day, 0).astimezone(TIMEZONE_TOKYO)
-        t1 = datetime(year, month, day, 5).astimezone(TIMEZONE_TOKYO)
-    except:
-        return
+    for day in days:
+        try:
+            t0 = datetime(year, month, day, 0).astimezone(TIMEZONE_TOKYO)
+            t1 = datetime(year, month, day, 5).astimezone(TIMEZONE_TOKYO)
+        except:
+            continue
+        
+        length, begin, end = sliceTime(jst_all, t0, t1)
+        #print(f'{year}-{month}-{day} data size:', length)
+        if length < 50:
+            continue
+        
+        op = tohlcv[1][begin:end+1]
+        hi = tohlcv[2][begin:end+1]
+        lo = tohlcv[3][begin:end+1]
+        cl = tohlcv[4][begin:end+1]
+        vo = tohlcv[5][begin:end+1]
+        ohlcv = [op, hi, lo, cl, vo]
     
-    sma5 = sma(tohlcv[4], 5)
-    sma20 = sma(tohlcv[4], 20)
-    mid = midpoint(tohlcv[1:])
-    back = backward(tohlcv[1:])
-    
-    length, begin, end = sliceTime(jst, t0, t1)
-    if length < 50:
-        return
-    
-    op = tohlcv[1][begin:end+1]
-    hi = tohlcv[2][begin:end+1]
-    lo = tohlcv[3][begin:end+1]
-    cl = tohlcv[4][begin:end+1]
-    vo = tohlcv[5][begin:end+1]
-    ohlcv = [op, hi, lo, cl, vo]
-
-    jst = jst[begin:end+1]
-    sma5 = sma5[begin: end + 1]
-    sma20 = sma20[begin: end + 1]
-    mid = mid[begin: end + 1]
-    back = back[begin: end + 1]
-    back /= cl[0] * 100.0
-    dif = (sma5 - sma20) / cl[0] * 100.0
-    
-    fig, axes = gridFig([8, 4, 2], (20, 8))
-    chart1 = PyCandleChart(fig, axes[0], 'DJI2019/8/6')
-    chart1.drawCandle(jst, ohlcv)    
-    chart1.drawLine(jst, sma5, color='red')
-    chart1.drawLine(jst, sma20, color='blue')
-    
-    up_points, down_points = crossPoint(dif)
-    for i, value in up_points:
-        chart1.drawMarker(jst[i], hi[i], '^', 'green')
-    for i, _ in down_points:
-        chart1.drawMarker(jst[i], hi[i], 'v', 'red')
-    
-    chart2 = PyCandleChart(fig, axes[2], '')
-    chart2.drawLine(jst, dif)
-    
-    chart3 = PyCandleChart(fig, axes[1], '')
-    chart3.drawLine(jst, back, color='orange')
-
+        jst = jst_all[begin:end+1]
+        sma5 = sma5_all[begin: end + 1]
+        sma20 = sma20_all[begin: end + 1]
+        mid = mid_all[begin: end + 1]
+        back = back_all[begin: end + 1]
+        back /= cl[0] * 100.0
+        dif = (sma5 - sma20) / cl[0] * 100.0
+        
+        fig, axes = gridFig([8, 4, 2], (20, 8))
+        chart1 = PyCandleChart(fig, axes[0], f'DJI(1min) {year}-{month}-{day}')
+        chart1.drawCandle(jst, ohlcv)    
+        chart1.drawLine(jst, sma5, color='red')
+        chart1.drawLine(jst, sma20, color='blue')
+        
+        up_points, down_points = crossPoint(dif)
+        for i, value in up_points:
+            chart1.drawMarker(jst[i], hi[i], '^', 'green')
+        for i, _ in down_points:
+            chart1.drawMarker(jst[i], hi[i], 'v', 'red')
+        
+        chart2 = PyCandleChart(fig, axes[2], '')
+        chart2.drawLine(jst, dif)
+        chart2.ylimit((-0.3, 0.3))
+        
+        chart3 = PyCandleChart(fig, axes[1], '')
+        chart3.drawLine(jst, back, color='orange')
+        #lim = chart3.getYlimit()
+        chart3.ylimit((-4e-5, 4e-5))
 
 def test():
-    year = 2019
+    year = 2022
     df = pd.read_csv( f'../data/DJI/DJI_Feature_{year}.csv')
     tohlcv = candleData2arrays(df.values)
-    for month in range(1, 7):
-        for day in range(1, 32):
-            plot(year, month, day, tohlcv)
+    for month in range(1, 13):
+        plot(year, month, range(1, 32), tohlcv)
 
     
 

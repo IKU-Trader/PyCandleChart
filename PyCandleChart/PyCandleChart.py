@@ -340,6 +340,9 @@ class PyCandleChart:
         
     def getXlimit(self):
         return self.ax.get_xlim()
+    
+    def getYlimit(self):
+        return self.ax.get_ylim()
         
 class PyBandPlot:
     def __init__(self, fig, ax, title, date_format=DATE_FORMAT_DAY_TIME):
