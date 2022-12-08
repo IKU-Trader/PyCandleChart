@@ -9,7 +9,8 @@ import datetime
 import calendar
 import pytz
 
-TIMEZONE_TOKYO = datetime.timezone(datetime.timedelta(hours=+9), 'Asia/Tokyo')
+#TIMEZONE_TOKYO = datetime.timezone(datetime.timedelta(hours=+9), 'Asia/Tokyo')
+TIMEZONE_TOKYO = pytz.timezone('Asia/Tokyo')
 
 def changeTimezone(pytime_array: [datetime.datetime], tzinfo):
     out =[]
@@ -62,7 +63,7 @@ def utcTime(year, month, day, hour, minute, second):
 #https://pytz.sourceforge.net/
 #Unfortunately using the tzinfo argument of the standard datetime constructors ‘’does not work’’ with pytz for many timezones.
 def pyTime(year, month, day, hour, minute, second, tzinfo):
-    t = datetime(year, month, day, hour, minute, second)
+    t = datetime.datetime(year, month, day, hour, minute, second)
     time = tzinfo.localize(t)
     return time
 
