@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Dec  4 22:03:12 2022
+Created on Tue Mar 28 22:31:48 2023
 
 @author: IKU-Trader
 """
+
 import pandas as pd
 import numpy as np
 import pytz
-from PyCandleChart import PyCandleChart, candleData2arrays, makeFig, gridFig
-from time_utility import changeTimezone, TIMEZONE_TOKYO, str2pytimeArray, sliceTime, pyTime
-
+from CandleChart import CandleChart, candleData2arrays, makeFig, gridFig
+from TimeUtils import TimeUtils
+from Utils import Utils
 
 
 def midpoint(ohlcv):
@@ -95,8 +96,8 @@ def thrust(ohlc):
     return out
 
 def plot(year, month, days, tohlcv):
-    time = str2pytimeArray(tohlcv[0], pytz.utc)
-    jst_all = changeTimezone(time, TIMEZONE_TOKYO)     
+    time = TimeUtils.str2pytimeArray(tohlcv[0], pytz.utc)
+    jst_all = TimeUtils.changeTimezone(time, TimeUtils.TIMEZONE_TOKYO)     
     sma5_all = sma(tohlcv[4], 5)
     sma20_all = sma(tohlcv[4], 20)
     thrst_all = thrust(tohlcv[1:])
@@ -105,12 +106,12 @@ def plot(year, month, days, tohlcv):
     
     for day in days:
         try:
-            t0 = pyTime(year, month, day, 0, 0, 0, TIMEZONE_TOKYO)
-            t1 = pyTime(year, month, day, 5, 0, 0, TIMEZONE_TOKYO)
+            t0 = TimeUtils.pyTime(year, month, day, 0, 0, 0, TimeUtils.TIMEZONE_TOKYO)
+            t1 = TimeUtils.pyTime(year, month, day, 5, 0, 0, TimeUtils.TIMEZONE_TOKYO)
         except:
             continue
         
-        length, begin, end = sliceTime(jst_all, t0, t1)
+        length, begin, end = Utils.sliceTime(jst_all, t0, t1)
         print(f'{year}-{month}-{day} data size:', length)
         if length < 50:
             continue
@@ -120,9 +121,10 @@ def plot(year, month, days, tohlcv):
         lo = tohlcv[3][begin:end+1]
         cl = tohlcv[4][begin:end+1]
         vo = tohlcv[5][begin:end+1]
-        ohlcv = [op, hi, lo, cl, vo]
-    
+       
         jst = jst_all[begin:end+1]
+        tohlcv = [jst, op, hi, lo, cl, vo]
+        
         sma5 = sma5_all[begin: end + 1]
         sma20 = sma20_all[begin: end + 1]
         mid = mid_all[begin: end + 1]
@@ -132,8 +134,8 @@ def plot(year, month, days, tohlcv):
         dif = (sma5 - sma20) / cl[0] * 100.0
         
         fig, axes = gridFig([8, 3, 2, 1], (20, 8))
-        chart1 = PyCandleChart(fig, axes[0], f'DJI(1min) {year}-{month}-{day}')
-        chart1.drawCandle(jst, ohlcv)    
+        chart1 = CandleChart(fig, axes[0], f'DJI(1min) {year}-{month}-{day}')
+        chart1.drawCandle(tohlcv)    
         chart1.drawLine(jst, sma5, color='red')
         chart1.drawLine(jst, sma20, color='blue')
         
@@ -143,22 +145,22 @@ def plot(year, month, days, tohlcv):
         for i, _ in down_points:
             chart1.drawMarker(jst[i], hi[i], 'v', 'red')
             
-        chart2 = PyCandleChart(fig, axes[1], '')
+        chart2 = CandleChart(fig, axes[1], '')
         chart2.drawLine(jst, back, color='orange')
         #lim = chart3.getYlimit()
         chart2.ylimit((-4e-5, 4e-5))            
                     
-        chart3 = PyCandleChart(fig, axes[2], '')
+        chart3 = CandleChart(fig, axes[2], '')
         chart3.drawLine(jst, dif)
         chart3.ylimit((-0.3, 0.3))
     
-        chart4 = PyCandleChart(fig, axes[3], '')
+        chart4 = CandleChart(fig, axes[3], '')
         chart4.drawLine(jst, thrst, color='green')
 
 
 def test():
     year = 2019
-    df = pd.read_csv( f'../data/DJI/DJI_Feature_{year}.csv')
+    df = pd.read_csv( f'./data/DJI/DJI_Feature_{year}.csv')
     tohlcv = candleData2arrays(df.values)
     plot(year, 8, [6], tohlcv)
         
